@@ -12,4 +12,4 @@ workflows:
         jobs:
             - aws-ecr/build-and-push-image:
                 repo: nogi-backup-blog
-                tag: 'latest,myECRRepoTag'
+                tag: 'latest'

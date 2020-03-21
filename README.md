@@ -1,1 +1,15 @@
-# Nogizask Blog Backup Crawler
+# Nogizaka46 Blog Backup Crawler
+
+## Enviroment
+
+- GOOGLE_APPLICATION_CREDENTIALS
+
+- DB_USERNAME
+
+- DB_PASSWORD
+
+- DB_HOST
+
+- SLACK_HOOK
+
+- SLACK_CHANNEL_NAME

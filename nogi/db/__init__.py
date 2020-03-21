@@ -48,7 +48,7 @@ def create_engine_and_metadata():
         username=os.environ.get('DB_USERNAME'),
         password=os.environ.get('DB_PASSWORD'),
         host=os.environ.get('DB_HOST', '127.0.0.1'),
-        port=os.environ.get('DB_PORT', '3306'),
+        port=3306,
         db_name=os.environ.get('DB_NAME'))
 
     engine = create_engine(engine_url, **settings)

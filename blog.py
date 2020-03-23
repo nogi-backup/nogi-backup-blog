@@ -25,10 +25,15 @@ class CommandLine:
         self.gcs = GCS()
 
     def check_blog_update(self):
+        member_latest_post_tx = self.blog_summary.get_members_latest_post_created_ts()
         members = [x for x in self.blog_member.get_current_members()]
         shuffle(members)
         for member in tqdm(members):
-            Updater(member=member, blog_db=self.blog_summary).run()
+            Updater(
+                member=member,
+                blog_db=self.blog_summary,
+                latest_post_ts=member_latest_post_tx.get(member['id'], 0),
+            ).run()
 
     def crawl_blogs(self, bucket: str = 'nogi-test'):
         for member in tqdm(self.blog_member.get_current_members()):

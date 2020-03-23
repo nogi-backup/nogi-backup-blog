@@ -1,13 +1,14 @@
 """Updater.py
 Objective: Check DB Record is updated.
 """
-import time
 import os
+import time
+
 import requests
 
 from nogi import REQUEST_HEADERS, endpoints
-from nogi.utils import notification
 from nogi.db.nogi_blog_summary import NogiBlogSummary
+from nogi.utils import notification
 from nogi.utils.parsers import (BlogParser, generate_post_key,
                                 parse_official_archive_urls)
 
@@ -16,16 +17,15 @@ class Updater:
 
     CRAWL_FROM = 'blog.nogizaka46.com'
 
-    def __init__(self, member: dict, blog_db: NogiBlogSummary, do_scan_all: bool = False):
+    def __init__(self, member: dict, latest_post_ts: int, blog_db: NogiBlogSummary, do_scan_all: bool = False):
         self.member = member
         self.progress_db = blog_db
-        self.latest_post = self.progress_db.get_last_post_meta(member['id'])
+        self.latest_post_ts = latest_post_ts
         self.new_blogs = []
 
         home_page = endpoints.get_nogi_official_archives_html(member['roma_name'])
         self.urls = parse_official_archive_urls(home_page)
-        self._scan_all = do_scan_all if do_scan_all else not bool(self.latest_post)
-
+        self._scan_all = do_scan_all if do_scan_all else not bool(self.latest_post_ts)
         self.slack_url = os.environ.get('SLACK_HOOK')
         self.channel_name = os.environ.get('CHANNEL_NAME')
 
@@ -54,7 +54,7 @@ class Updater:
     def extract_page(self, page: BlogParser):
         posts = []
         for abstract in page.get_page_blog_abstract():
-            if abstract and abstract['created_at'] > self.latest_post.get('blog_created_at', 0):
+            if abstract and abstract['created_at'] > self.latest_post_ts:
                 posts.append(self.db_transform(obj=abstract, member_id=self.member['id'], crawl_from=self.CRAWL_FROM))
             else:
                 break
@@ -70,6 +70,9 @@ class Updater:
                 continue
             else:
                 break
+        if not new_posts:
+            print('{} No New Post.'.format(self.member['roma_name']))
+            return
 
         for post in new_posts:
             post['created_at'] = int(time.time())

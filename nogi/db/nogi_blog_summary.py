@@ -1,7 +1,7 @@
 from typing import Generator
 
 from sqlalchemy import BIGINT, BOOLEAN, INT, JSON, Column, String, Table
-from sqlalchemy.sql.expression import and_, desc, select
+from sqlalchemy.sql.expression import and_, desc, func, select
 
 from nogi.db import BaseModel
 
@@ -43,6 +43,16 @@ class NogiBlogSummary(BaseModel):
             .order_by(desc(self.table.c.blog_created_at)).limit(1)
         row = self.execute(stmt).fetchone()
         return dict(blog_key=row.blog_key, blog_created_at=row.blog_created_at) if row else dict()
+
+    def get_members_latest_post_created_ts(self) -> dict:
+        result = dict()
+        stmt = select([
+            self.table.c.member_id,
+            func.max(self.table.c.blog_created_at).label('latest_post_ts')
+        ]).group_by(self.table.c.member_id)
+        for row in self.execute(stmt).fetchall():
+            result[row.member_id] = row.latest_post_ts
+        return result
 
     def get_missing_blog_url(self, member_id: int) -> Generator[str, None, None]:
         stmt = select([self.table.c.url]) \

@@ -8,13 +8,13 @@ from urllib.parse import urlparse
 import aiohttp
 from aiohttp import ClientSession, TCPConnector
 import requests
+from tqdm import tqdm
 
 from nogi import REQUEST_HEADERS
 from nogi.db.nogi_blog_content import NogiBlogContent
 from nogi.db.nogi_blog_summary import NogiBlogSummary
-from nogi.utils.parsers import PostParser, generate_post_key
 from nogi.storages.gcs import GCS
-from tqdm import tqdm
+from nogi.utils.parsers import PostParser, generate_post_key
 
 logger = logging.getLogger()
 

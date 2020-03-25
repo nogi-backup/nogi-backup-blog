@@ -1,5 +1,7 @@
 # Nogizaka46 Blog Backup Crawler
 
+[![CircleCI](https://circleci.com/gh/Cooomma/nogi-backup-blog.svg?style=svg)](https://circleci.com/gh/Cooomma/nogi-backup-blog)
+
 ## Enviroment
 
 - GOOGLE_APPLICATION_CREDENTIALS

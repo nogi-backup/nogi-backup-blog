@@ -19,7 +19,7 @@ class CommandLine:
         # Blog
         self.blog_content = NogiBlogContent(engine, metadata, role='writer')
         self.blog_summary = NogiBlogSummary(engine, metadata, role='writer')
-        self.blog_member = NogiMembers(engine, metadata, role='writer')
+        self.blog_member = NogiMembers(engine, metadata)
 
         # GCS
         self.gcs = GCS()

@@ -22,7 +22,7 @@ class Updater:
     def __init__(self, member: dict, blog_db: NogiBlogSummary, do_scan_all: bool = False):
         self.member = member
         self.progress_db = blog_db
-        self.latest_blog_keys = self.progress_db.get_last_blog_keys(member_id=member['id'], limit=10)
+        self.latest_blog_keys = self.progress_db.get_last_blog_posts(member_id=member['id'], limit=10)
         self.new_blogs = []
 
         home_page = endpoints.get_nogi_official_archives_html(member['roma_name'])
@@ -55,8 +55,11 @@ class Updater:
 
     def extract_page(self, page: BlogParser):
         posts = []
+        latest_blog_keys = {x['blog_key'] for x in self.latest_blog_keys}
+        last_blog_created_at = self.latest_blog_keys[0]['blog_created_at']
+
         for abstract in page.get_page_blog_abstract():
-            if abstract and abstract['key'] not in self.latest_blog_keys:
+            if abstract and abstract['created_at'] > last_blog_created_at and abstract['key'] not in latest_blog_keys:
                 posts.append(self.db_transform(obj=abstract, member_id=self.member['id'], crawl_from=self.CRAWL_FROM))
         return posts
 
@@ -77,7 +80,5 @@ class Updater:
             try:
                 self.progress_db.raw_insert(post)
             except IntegrityError:
-                pass
-            except Exception:
-                print(traceback.format_exc())
+                print(post)
         return dict(member=self.member['roma_name'], new_posts=len(new_posts))

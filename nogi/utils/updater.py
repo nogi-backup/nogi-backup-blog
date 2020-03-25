@@ -3,7 +3,9 @@ Objective: Check DB Record is updated.
 """
 import os
 import time
+import traceback
 
+from MySQLdb._exceptions import IntegrityError
 import requests
 
 from nogi import REQUEST_HEADERS, endpoints
@@ -74,9 +76,15 @@ class Updater:
             print('{} No New Post.'.format(self.member['roma_name']))
             return
 
+        print(new_posts)
         for post in new_posts:
             post['created_at'] = int(time.time())
             if self.slack_url:
                 self._push_notification(post)
-            self.progress_db.raw_insert(post)
+            try:
+                self.progress_db.raw_insert(post)
+            except IntegrityError:
+                pass
+            except Exception:
+                print(traceback.format_exc())
         return dict(member=self.member['roma_name'], new_posts=len(new_posts))

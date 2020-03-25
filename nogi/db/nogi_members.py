@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy import BIGINT, BOOLEAN, INT, Column, String, Table
 from sqlalchemy.sql.expression import and_, select
 
@@ -33,7 +34,8 @@ class NogiMembers(BaseModel):
         row = self.execute(stmt).fetchone()
         return dict(id=row.id, roma_name=row.roma_name, kana_name=row.kana_name,  kanji_name=row.kanji_name, is_graduated=row.is_graduated)
 
-    def get_current_members(self) -> dict:
+    def get_current_members(self) -> List[dict]:
+        results = []
         stmt = select([
             self.table.c.id,
             self.table.c.roma_name,
@@ -46,5 +48,8 @@ class NogiMembers(BaseModel):
         cursor = self.execute(stmt)
         row = cursor.fetchone()
         while row:
-            yield dict(id=row.id, roma_name=row.roma_name, kana_name=row.kana_name,  kanji_name=row.kanji_name)
+            results.append(
+                dict(id=row.id, roma_name=row.roma_name, kana_name=row.kana_name,  kanji_name=row.kanji_name)
+            )
             row = cursor.fetchone()
+        return results

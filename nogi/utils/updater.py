@@ -22,7 +22,7 @@ class Updater:
     def __init__(self, member: dict, blog_db: NogiBlogSummary, do_scan_all: bool = False):
         self.member = member
         self.progress_db = blog_db
-        self.latest_post = self.progress_db.get_last_post_meta(member['id'])
+        self.latest_blog_keys = self.progress_db.get_last_blog_keys(member_id=member['id'], limit=10)
         self.new_blogs = []
 
         home_page = endpoints.get_nogi_official_archives_html(member['roma_name'])
@@ -56,7 +56,7 @@ class Updater:
     def extract_page(self, page: BlogParser):
         posts = []
         for abstract in page.get_page_blog_abstract():
-            if abstract and abstract['created_at'] > self.latest_post['blog_created_at']:
+            if abstract and abstract['key'] not in self.latest_blog_keys:
                 posts.append(self.db_transform(obj=abstract, member_id=self.member['id'], crawl_from=self.CRAWL_FROM))
         return posts
 
@@ -69,7 +69,7 @@ class Updater:
             print('{} No New Post.'.format(self.member['roma_name']))
             return
 
-        print(self.latest_post, new_posts)
+        print(self.latest_blog_keys, new_posts)
         for post in new_posts:
             post['created_at'] = int(time.time())
             if self.slack_url:

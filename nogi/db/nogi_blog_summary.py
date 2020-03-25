@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Set
 
 from sqlalchemy import BIGINT, BOOLEAN, INT, JSON, Column, String, Table
 from sqlalchemy.sql.expression import and_, desc, func, select
@@ -43,6 +43,19 @@ class NogiBlogSummary(BaseModel):
             .order_by(desc(self.table.c.blog_created_at)).limit(1)
         row = self.execute(stmt).fetchone()
         return dict(blog_key=row.blog_key, blog_created_at=row.blog_created_at) if row else dict()
+
+    def get_last_blog_keys(self, member_id: int, limit: int = 1) -> Set[str]:
+        stmt = select([self.table.c.blog_key]) \
+            .where(and_(self.table.c.member_id == member_id)) \
+            .order_by(desc(self.table.c.blog_created_at)) \
+            .limit(limit)
+        cursor = self.execute(stmt)
+        row = cursor.fetchone()
+        results = set()
+        while row:
+            results.add(row.blog_key)
+            row = cursor.fetchone()
+        return results
 
     def get_members_latest_post_created_ts(self) -> dict:
         result = dict()

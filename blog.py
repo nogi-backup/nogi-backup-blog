@@ -25,15 +25,10 @@ class CommandLine:
         self.gcs = GCS()
 
     def crawl(self, bucket: str = 'nogi-test'):
-        member_latest_post_tx = self.blog_summary.get_members_latest_post_created_ts()
         _members = self.blog_member.get_current_members()
         shuffle(_members)
         for member in tqdm(_members):
-            Updater(
-                member=member,
-                blog_db=self.blog_summary,
-                latest_post_ts=member_latest_post_tx.get(member['id'], 0),
-            ).run()
+            Updater(member=member, blog_db=self.blog_summary).run()
             PostExecutor(
                 member=member,
                 summary_db=self.blog_summary,

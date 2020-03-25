@@ -73,8 +73,9 @@ class BlogParser:
         titles = self.blog_titles
         results = []
         for index, date in enumerate(dates):
-            results.append(dict(key=generate_post_key(
-                urls[index]), title=titles[index], created_at=int(date.timestamp()), url=urls[index]))
+            results.append(dict(
+                key=generate_post_key(urls[index]), title=titles[index], created_at=int(date.timestamp()), url=urls[index])
+            )
         return sorted(results, key=lambda x: x['created_at'], reverse=True)
 
 

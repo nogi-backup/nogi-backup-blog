@@ -3,7 +3,6 @@ Objective: Check DB Record is updated.
 """
 import os
 import time
-import traceback
 
 from MySQLdb._exceptions import IntegrityError
 import requests
@@ -28,20 +27,10 @@ class Updater:
         home_page = endpoints.get_nogi_official_archives_html(member['roma_name'])
         self.urls = parse_official_archive_urls(home_page)
         self._scan_all = do_scan_all
-        self.slack_url = os.environ.get('SLACK_HOOK')
-        self.channel_name = os.environ.get('CHANNEL_NAME')
-
-    def _push_notification(self, new_post: dict):
-        requests.post(
-            url=self.slack_url,
-            headers={'Content-Type': "application/json", 'cache-control': "no-cache"},
-            json=notification.render_slack_message(
-                title=new_post['title'],
-                member=self.member,
-                blog_created_at=new_post['blog_created_at'],
-                url=new_post['url'],
-                channel_name=self.channel_name
-            ))
+        self.slack_url = os.environ.get('SLACK_WEBHOOK')
+        self.slack_channel_name = os.environ.get('SLACK_CHANNEL_NAME')
+        self.telegram_bot_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        self.telegram_channel_name = os.environ.get('TELEGRAM_CHANNEL_NAME')
 
     @staticmethod
     def db_transform(obj: dict, **kwargs) -> dict:
@@ -75,8 +64,14 @@ class Updater:
         print(self.latest_blog_keys, new_posts)
         for post in new_posts:
             post['created_at'] = int(time.time())
-            if self.slack_url:
-                self._push_notification(post)
+            if self.slack_url and self.slack_channel_name:
+                notification.send_slack_notification(
+                    url=self.slack_url, channel_name=self.slack_channel_name, member=self.member, post=post
+                )
+            if self.telegram_bot_token and self.telegram_channel_name:
+                notification.send_telegram_notification(
+                    token=self.telegram_bot_token, channel_name=self.telegram_channel_name, member=self.member, post=post
+                )
             try:
                 self.progress_db.raw_insert(post)
             except IntegrityError:

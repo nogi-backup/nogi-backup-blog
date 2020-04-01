@@ -17,21 +17,18 @@
 
 - `DB_HOST`
 
-#### Storage
-
-- `GOOGLE_APPLICATION_CREDENTIALS`
-
 ---
 
 ### Push Channel
 
 #### Slack
 
-- `SLACK_HOOK`
+- `SLACK_WEBHOOK`
 
 - `SLACK_CHANNEL_NAME`
 
 #### Telegram
 
-- `TELEGRAM_TOKEN`
+- `TELEGRAM_BOT_TOKEN`
 
+- `TELEGRAM_CHANNEL_NAME`

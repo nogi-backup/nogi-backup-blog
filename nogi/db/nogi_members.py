@@ -1,4 +1,5 @@
 from typing import List
+
 from sqlalchemy import BIGINT, BOOLEAN, INT, Column, String, Table
 from sqlalchemy.sql.expression import and_, select
 

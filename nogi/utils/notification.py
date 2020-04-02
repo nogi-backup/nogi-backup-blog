@@ -45,7 +45,7 @@ def render_slack_message(channel_name: str, member: dict, post: dict) -> dict:
 def send_telegram_notification(token: str, channel_name: str, member: dict, post: dict):
     requests.post(
         url='https://api.telegram.org/bot{}/sendMessage'.format(token),
-        header=HEADER,
+        headers=HEADER,
         json=dict(
             chat_id="@{}".format(channel_name),
             text=render_telegram_message(member=member, post=post),

@@ -64,6 +64,10 @@ class Updater:
         print(self.latest_blog_keys, new_posts)
         for post in new_posts:
             post['created_at'] = int(time.time())
+            try:
+                self.progress_db.raw_insert(post)
+            except IntegrityError:
+                print(post)
             if self.slack_url and self.slack_channel_name:
                 notification.send_slack_notification(
                     url=self.slack_url, channel_name=self.slack_channel_name, member=self.member, post=post
@@ -72,8 +76,4 @@ class Updater:
                 notification.send_telegram_notification(
                     token=self.telegram_bot_token, channel_name=self.telegram_channel_name, member=self.member, post=post
                 )
-            try:
-                self.progress_db.raw_insert(post)
-            except IntegrityError:
-                print(post)
         return dict(member=self.member['roma_name'], new_posts=len(new_posts))

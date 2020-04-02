@@ -57,11 +57,10 @@ def send_telegram_notification(token: str, channel_name: str, member: dict, post
 
 def render_telegram_message(member: dict, post: dict) -> dict:
     return '''
-    {title}
-    
-    Member: {member}
-    Created At: {created_at}
-    Url: {url}
+**{title}**
+Member: {member}
+Created At: {created_at}    
+Url: {url}
     '''.format(
         title=post['title'],
         member=member['kanji_name'],

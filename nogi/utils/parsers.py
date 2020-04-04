@@ -1,6 +1,6 @@
 from datetime import datetime
 import re
-from typing import Generator
+from typing import Generator, List
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
@@ -105,8 +105,25 @@ class PostParser:
         return ''.join(contents)
 
     @property
-    def post_content_images(self) -> list:
-        return [item['src'] for item in self._parser.select('div.entrybody img[src]')]
+    def post_content_images(self) -> List[dict]:
+        blog_image_urls = [item['src'] for item in self._parser.select('div.entrybody img[src]')]
+        print(blog_image_urls)
+        results = list()
+        for index, item in enumerate(self._parser.select('div.entrybody a[href]')):
+            print(index, item)
+            url = item['href'] if 'http://dcimg.awalker.jp/' in item['href'] else ''
+            results.append(
+                dict(
+                    image_url=blog_image_urls[index],
+                    high_resolution_url=url if url else blog_image_urls[index]
+                )
+            )
+        print(results)
+        return results
+
+    @property
+    def post_content_images_link(self) -> list:
+        return
 
     @property
     def post_created_at(self) -> str:

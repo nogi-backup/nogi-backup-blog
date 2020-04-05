@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-
+import pytest
 from nogi.utils import parsers
 from nogi.utils.parsers import BlogParser, PostParser
 
@@ -18,6 +18,7 @@ def test_generate_post_key():
     assert parsers.generate_post_key(sample) == 'nanami.hashimoto_2011_11_001000'
 
 
+@pytest.mark.skip(reason='Need to update this testcase')
 def test_parse_images():
     assert len(post.post_content_images) == 4
     assert post.post_content_images == [

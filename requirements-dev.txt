@@ -18,7 +18,7 @@ googleapis-common-protos==1.51.0
 idna==2.9
 isort==4.3.21
 lazy-object-proxy==1.4.3
-lxml==4.5.0
+lxml==4.6.3
 mccabe==0.6.1
 more-itertools==8.2.0
 multidict==4.7.5

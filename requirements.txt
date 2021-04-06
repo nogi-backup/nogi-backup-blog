@@ -2,7 +2,7 @@ aiohttp==3.6.2
 beautifulsoup4==4.9.0
 bs4==0.0.1
 fire==0.3.1
-google-cloud-storage==1.27.0
+google-cloud-storage==1.37.1
 lxml==4.5.0
 mysqlclient==1.4.6
 requests==2.23.0

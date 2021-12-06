@@ -1,29 +1,32 @@
 from typing import Generator, List
 
-from sqlalchemy import BIGINT, BOOLEAN, INT, JSON, Column, String, Table
-from sqlalchemy.sql.expression import and_, desc, func, select
+from sqlalchemy import JSON, Column, Sequence, Table, select
+from sqlalchemy.engine.base import Engine
+from sqlalchemy.sql.expression import and_, desc, func
+from sqlalchemy.sql.schema import MetaData
+from sqlalchemy.sql.sqltypes import BigInteger, DateTime, Integer, String, Text
 
 from nogi.db import BaseModel
 
 
-class NogiBlogSummary(BaseModel):
+class NogiBlog(BaseModel):
 
-    def __init__(self, engine, metadata, role='reader'):
+    def __init__(self, engine: Engine, metadata: MetaData, schema: str, role='reader'):
         table = Table(
-            'nogi_blog_summary',
+            'blogs',
             metadata,
-            Column('id', INT, primary_key=True, autoincrement=True),
-            Column('member_id', INT),
+            Column('id', BigInteger, Sequence('id_seq'), primary_key=True),
             Column('blog_key', String(64), unique=True),
+            Column('member_id', Integer),
             Column('url', String(255)),
             Column('title', String(255)),
-            Column('blog_created_at', BIGINT),
-            Column('crawl_from', String(64)),
-            Column('is_in_gcs', BOOLEAN, default=False),
-            Column('image_gcs_paths', JSON),
-            Column('post_gcs_path', String(255)),
-            Column('created_at', BIGINT),
-            Column('updated_at', BIGINT),
+            Column('blog_created_at', DateTime),
+            Column('content', Text),
+            Column('image_paths', JSON),
+            Column('post_path', String(255)),
+            Column('created_at', DateTime),
+            Column('updated_at', DateTime),
+            schema=schema,
             extend_existing=True)
         super().__init__(engine, metadata, table, role)
 
@@ -51,7 +54,7 @@ class NogiBlogSummary(BaseModel):
             .limit(limit)
         cursor = self.execute(stmt)
         row = cursor.fetchone()
-        results = list()
+        results = []
         while row:
             results.append(dict(blog_key=row.blog_key, blog_created_at=row.blog_created_at))
             row = cursor.fetchone()
@@ -77,11 +80,16 @@ class NogiBlogSummary(BaseModel):
             yield row.url
             row = cursor.fetchone()
 
-    def update_crawled_result(self, crawler_result: dict):
-        self.raw_update(
-            where=and_(self.table.c.blog_key == crawler_result['blog_key']),
-            row=dict(
-                is_in_gcs=True,
+    def insert_crawled_post(self, crawler_result: dict):
+        self.raw_insert(
+            dict(
+                blog_key=crawler_result['blog_key'],
+                member_id=crawler_result['member_id'],
                 title=crawler_result['title'],
-                image_gcs_paths=crawler_result['image_gcs_paths'],
-                post_gcs_path=crawler_result['post_gcs_path']))
+                blog_created_at=crawler_result['blog_created_at'],
+                content=crawler_result['content'],
+                url=crawler_result['url'],
+                image_paths=crawler_result['image_paths'],
+                post_path=crawler_result['post_path'],
+            )
+        )

@@ -1,6 +1,6 @@
 from datetime import datetime
 import re
-from typing import Generator, List
+from typing import List
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
@@ -26,57 +26,8 @@ def generate_post_key(post_url: str) -> str:
     return '_'.join(post_url.split('/')[-4:]).replace('.php', '')
 
 
-class BlogParser:
-
-    def __init__(self, html: str) -> None:
-        self._parser = BeautifulSoup(html, 'lxml')
-        self._images = list()
-
-    @property
-    def profile_images(self) -> list:
-        return [item['src'] for item in self._parser.find_all('img', class_='image-embed')]
-
-    @property
-    def archive_blogs(self) -> list:
-        return [item['value'] for item in self._parser.find_all('option') if item['value']]
-
-    @property
-    def blog_urls(self) -> list:
-        return [item['href'] for item in self._parser.find_all('a', rel='bookmark')]
-
-    @property
-    def blog_titles(self) -> list:
-        return [item.text for item in self._parser.find_all('a', rel='bookmark')]
-
-    @property
-    def blog_dates(self) -> Generator[datetime, None, None]:
-        days = self._parser.find_all('span', attrs={'class': 'dd1'})
-        for index, yearmonth in enumerate(self._parser.find_all('span', attrs={'class': 'yearmonth'})):
-            yield datetime(
-                year=int(yearmonth.string.split('/')[0]),
-                month=int(yearmonth.string.split('/')[1]),
-                day=int(days[index].string))
-
-    @property
-    def blog_next_pages(self) -> list:
-        results = set()
-        for item in self._parser.select('div.paginate a[href]'):
-            if 'index.php' in item['href']:
-                results.add(item['href'].replace('index.php', ''))
-            else:
-                results.add(item['href'])
-        return sorted(results)
-
-    def get_page_blog_abstract(self):
-        urls = self.blog_urls
-        dates = self.blog_dates
-        titles = self.blog_titles
-        results = []
-        for index, date in enumerate(dates):
-            results.append(dict(
-                key=generate_post_key(urls[index]), title=titles[index], created_at=int(date.timestamp()), url=urls[index])
-            )
-        return sorted(results, key=lambda x: x['created_at'], reverse=True)
+def parse_post_urls_in_blog_page(blog_page_html: str) -> List[str]:
+    return [item['href'] for item in BeautifulSoup(blog_page_html, 'lxml').find_all('a', rel='bookmark')]
 
 
 class PostParser:
@@ -126,7 +77,7 @@ class PostParser:
         return
 
     @property
-    def post_created_at(self) -> str:
+    def post_created_at(self) -> datetime:
         day = self._parser.select('span.dd1')[0].text
         year, month = self._parser.select('span.yearmonth')[0].text.split('/')
         return datetime(year=int(year), month=int(month), day=int(day))
@@ -136,7 +87,8 @@ class PostParser:
             title=self.post_title,
             content=self.post_content,
             image_urls=self.post_content_images,
-            created_at=self.post_created_at)
+            created_at=self.post_created_at
+        )
 
     @staticmethod
     def blog_format_1(html_tags: Tag) -> list:

@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+tqdm = "*"
+requests = "*"
+pg8000 = "*"
+sqlalchemy = "*"
+bs4 = "*"
+click = "*"
+boto3 = "*"
+asyncio = "*"
+aiohttp = "*"
+lxml = "*"
+
+[dev-packages]
+pytest = "*"
+autopep8 = "*"
+pylint = "*"
+
+[requires]
+python_version = "3.9"

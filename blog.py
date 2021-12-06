@@ -1,42 +1,66 @@
-from random import shuffle
 
-from fire import Fire
-from tqdm import tqdm
+import asyncio
+import os
+from random import randint, shuffle
+import time
 
-from nogi import engine, metadata
-from nogi.db.nogi_blog_content import NogiBlogContent
-from nogi.db.nogi_blog_summary import NogiBlogSummary
+import click
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.engine import Engine
+
+from nogi.db.nogi_blogs import NogiBlog
 from nogi.db.nogi_members import NogiMembers
+from nogi.storages.s3 import S3
 from nogi.utils.post_extractor import PostExecutor
-from nogi.utils.updater import Updater
-from nogi.storages.gcs import GCS
+
+QUEUE_LENGTH = 5
 
 
-class CommandLine:
+@click.command()
+def crawl():
+    os.makedirs('./tmp', exist_ok=True)
+    _connection = 'postgresql+pg8000://{username}:{password}@{host}/{name}'.format(
+        username=os.environ.get('DB_USERNAME', 'postgres'),
+        password=os.environ.get('DB_PASSWORD', 'admin'),
+        host=os.environ.get('DB_HOST', '127.0.0.1'),
+        name=os.environ.get('DB_NAME', 'postgres')
+    )
 
-    def __init__(self) -> None:
+    # Connect DB
+    engine: Engine = create_engine(_connection, encoding='utf8')
+    metadata = MetaData(bind=engine)
+    blog_db_instance = NogiBlog(engine, metadata, 'nogizaka', role='writer')
+    member_db_instance = NogiMembers(engine, metadata, 'nogizaka', role='writer')
 
-        # Blog
-        self.blog_content = NogiBlogContent(engine, metadata, role='writer')
-        self.blog_summary = NogiBlogSummary(engine, metadata, role='writer')
-        self.blog_member = NogiMembers(engine, metadata)
+    # Create S3
+    s3 = S3(bucket_name=os.environ['S3_BUCKET'])
 
-        # GCS
-        self.gcs = GCS()
+    # List active Members
+    active_members = [member['roma_name'] for member in member_db_instance.get_current_members()]
+    shuffle(active_members)
 
-    def crawl(self, bucket: str = 'nogi-test'):
-        _members = self.blog_member.get_current_members()
-        shuffle(_members)
-        for member in tqdm(_members):
-            Updater(member=member, blog_db=self.blog_summary).run()
-            PostExecutor(
-                member=member,
-                summary_db=self.blog_summary,
-                content_db=self.blog_content,
-                gcs_client=self.gcs,
-                bucket=bucket
-            ).run()
+    # Create Job Queue
+    tasks = []
+    loop = asyncio.get_event_loop()
+
+    while active_members:
+        # Create a Job for each member
+        _member = active_members.pop()
+        tasks.append(asyncio.ensure_future(PostExecutor(_member, blog_db_instance, s3).crawl()))
+
+        # Fire.
+        if len(tasks) >= QUEUE_LENGTH:
+            loop.run_until_complete(asyncio.gather(*tasks))
+            tasks = []
+
+            # Take a break. Be aware the rate limit.
+            sleep_second = randint(1, 15)
+            print('Sleep for %s second. Left %d Members todo' % sleep_second, len(active_members))
+            time.sleep(sleep_second)
+
+    if tasks:
+        loop.run_until_complete(asyncio.gather(*tasks))
 
 
 if __name__ == "__main__":
-    Fire(CommandLine)
+    crawl()

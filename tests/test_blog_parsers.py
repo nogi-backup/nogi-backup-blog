@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from nogi.utils import parsers
 from nogi.utils.parsers import BlogParser, PostParser
+import requests
 
 HTML_STRING = open(os.path.join(os.path.dirname(__file__), 'blog_sample.html'),  'r').read()
 
@@ -50,3 +51,12 @@ def test_parse_blog_title():
 def test_parse_blog_total_page():
     assert parsers.BlogParser(HTML_STRING).blog_next_pages == [
         '?page=1', '?page=2', '?page=3', '?page=4', '?page=5', '?page=all']
+
+
+def test_parse_post_urls_in_blog_page():
+    page_url = 'https://blog.nogizaka46.com/manatsu.akimoto/'
+    urls = parsers.parse_post_urls_in_blog_page(requests.get(
+        'https://blog.nogizaka46.com/manatsu.akimoto/', headers=HEADERS).text)
+    print(urls)
+    assert urls
+    assert False

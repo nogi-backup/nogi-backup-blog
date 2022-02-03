@@ -1,0 +1,5 @@
+{
+    "python.formatting.autopep8Path": "autopep8",
+    "python.linting.pylintPath": "pylint",
+    "python.linting.pylintEnabled": true,
+}

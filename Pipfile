@@ -1,0 +1,40 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aiohttp = "*"
+async-timeout = "*"
+attrs = "*"
+beautifulsoup4 = "*"
+bs4 = "*"
+cachetools = "*"
+certifi = "*"
+chardet = "*"
+fire = "*"
+idna = "*"
+lxml = "*"
+multidict = "*"
+protobuf = "*"
+pyasn1 = "*"
+pyasn1-modules = "*"
+pyparsing = "*"
+pytz = "*"
+requests = "*"
+rsa = "*"
+six = "*"
+soupsieve = "*"
+termcolor = "*"
+tqdm = "*"
+urllib3 = "*"
+yarl = "*"
+SQLAlchemy = "*"
+boto3 = "*"
+
+[dev-packages]
+pylint = "*"
+autopep8 = "*"
+
+[requires]
+python_version = "3.9"

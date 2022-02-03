@@ -1,26 +1,30 @@
 from typing import List
 
-from sqlalchemy import BIGINT, BOOLEAN, INT, Column, String, Table
+from sqlalchemy import (VARCHAR, BigInteger, Column, Constraint, Date, Integer,
+                        MetaData, Table)
+from sqlalchemy.engine import Engine
 from sqlalchemy.sql.expression import and_, select
 
-from nogi.db import BaseModel
 
+class Members:
 
-class NogiMembers(BaseModel):
-
-    def __init__(self, engine, metadata, role='reader'):
-        table = Table(
-            'nogi_members',
+    def __init__(self, engine: Engine, metadata: MetaData):
+        self.engine = engine
+        self.table = Table(
+            'members',
             metadata,
-            Column('id', INT, primary_key=True, autoincrement=True),
-            Column('roma_name', String(64)),
-            Column('kana_name', String(64)),
-            Column('kanji_name', String(64)),
-            Column('is_graduated', BOOLEAN),
-            Column('created_at', BIGINT),
-            Column('updated_at', BIGINT),
-            extend_existing=True)
-        super().__init__(engine, metadata, table, role)
+            Column('id', Integer, primary_key=True, autoincrement=True),
+            Column('roma_name', VARCHAR(64)),
+            Column('kana_name', VARCHAR(64)),
+            Column('kanji_name', VARCHAR(64)),
+            Column('birthday', Date),
+            Column('term', Integer),
+            Column('graduation', Date),
+            Column('created_at', BigInteger),
+            Column('updated_at', BigInteger),
+            Constraint('nogi_members_pkey'),
+            schema='nogizaka',
+        )
 
     def get_member_profile(self, member_roma: str) -> dict:
         stmt = select([
@@ -28,7 +32,7 @@ class NogiMembers(BaseModel):
             self.table.c.roma_name,
             self.table.c.kana_name,
             self.table.c.kanji_name,
-            self.table.c.is_graduated]) \
+            self.table.c.graduation]) \
             .where(
             and_(self.table.c.roma_name == member_roma)
         )
@@ -42,7 +46,8 @@ class NogiMembers(BaseModel):
             self.table.c.roma_name,
             self.table.c.kana_name,
             self.table.c.kanji_name,
-            self.table.c.is_graduated]) \
+            self.table.c.graduation,
+        ]) \
             .where(
                 and_(self.table.c.is_graduated == 0)
         )

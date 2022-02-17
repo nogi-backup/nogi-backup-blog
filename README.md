@@ -1,5 +1,7 @@
 ## Nogizaka46 Blog Backup Crawler
 
+**Deprecated due to Nogizaka46 Webpage UI upgrade**
+
 
 ![](https://github.com/NogiBackup/nogi-backup-blog/workflows/Test%20Python/badge.svg)
 ![](https://github.com/NogiBackup/nogi-backup-blog/workflows/Release%20Docker%20Image/badge.svg)
